@@ -128,10 +128,14 @@ const ghost=$('ghost');
 function startDrag(i,e){
   const p=tray[i];
   const br=boardEl.getBoundingClientRect();
-  const cs=(br.width-12-3*(N-1)+3*(N-1))/N; // approx cell pitch below
-  const pitch=(br.width-12+3)/N;
-  drag={i,p,pitch,cs:pitch-3};
+  const style=getComputedStyle(boardEl);
+  const border=parseFloat(style.borderLeftWidth)+parseFloat(style.borderRightWidth);
+  const padding=parseFloat(style.paddingLeft)+parseFloat(style.paddingRight);
+  const gap=parseFloat(style.columnGap);
+  const pitch=(br.width-border-padding+gap)/N;
+  drag={i,p,pitch,gap,inset:parseFloat(style.borderLeftWidth)+parseFloat(style.paddingLeft),cs:pitch-gap};
   ghost.innerHTML='';
+  ghost.style.gap=drag.gap+'px';
   ghost.style.gridTemplateColumns=`repeat(${p.shape[0].length},${drag.cs}px)`;
   p.shape.forEach(row=>row.forEach(v=>{
     const el=document.createElement('i');
@@ -146,12 +150,12 @@ function startDrag(i,e){
 }
 function target(e){
   const br=boardEl.getBoundingClientRect();
-  const {p,pitch}=drag;
+  const {p,pitch,inset}=drag;
   const w=p.shape[0].length*pitch,h=p.shape.length*pitch;
   const left=e.clientX-w/2,top=e.clientY-h/2-60;
   ghost.style.left=left+'px';ghost.style.top=top+'px';
-  const col=Math.round((left-br.left-6)/pitch);
-  const row=Math.round((top-br.top-6)/pitch);
+  const col=Math.round((left-br.left-inset)/pitch);
+  const row=Math.round((top-br.top-inset)/pitch);
   return {row,col};
 }
 function moveDrag(e){
